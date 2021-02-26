@@ -16,13 +16,6 @@
 package com.dandc87.fetch
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CutCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
@@ -36,10 +29,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.dandc87.fetch.data.Doggo
 import com.dandc87.fetch.data.DoggoRepository
 import com.dandc87.fetch.ui.theme.MyTheme
@@ -50,55 +41,40 @@ fun FetchApp(
     doggos: List<Doggo>,
     selectedDoggo: MutableState<Doggo?> = remember { mutableStateOf(null) }
 ) {
-    val detailScrollState = rememberScrollState()
     Surface(color = MaterialTheme.colors.background) {
         Column {
-            TopAppBar(
-                title = { Text(text = stringResource(id = R.string.app_name)) },
-                navigationIcon = if (selectedDoggo.value != null) {
-                    { ->
-                        IconButton(
-                            onClick = {
-                                selectedDoggo.value = null
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.ArrowBack,
-                                contentDescription = "Back",
-                            )
-                        }
-                    }
-                } else null,
+            FetchTopAppBar(
+                hasSelection = selectedDoggo.value != null,
+                onBackClick = { selectedDoggo.value = null },
             )
-            when (val selected = selectedDoggo.value) {
-                null -> LazyColumn {
-                    items(doggos) { doggo ->
-                        DoggoProfile(
-                            doggo = doggo,
-                            includeDetails = false,
-                            shape = CutCornerShape(size = 16.dp),
-                            elevation = 4.dp,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(all = 16.dp),
-                            onClick = {
-                                selectedDoggo.value = doggo
-                            }
-                        )
-                    }
-                }
-                else -> {
-                    DoggoProfile(
-                        doggo = selected,
-                        includeDetails = true,
-                        shape = RectangleShape,
-                        elevation = 0.dp,
-                        modifier = Modifier.verticalScroll(detailScrollState),
-                    )
-                }
+            SwipeableCardLayout(
+                items = doggos,
+                selectedItem = selectedDoggo,
+                modifier = Modifier,
+            ) { item, selected ->
+                DoggoProfile(
+                    doggo = item,
+                    includeDetails = selected,
+                )
             }
         }
     }
+}
+
+@Composable
+private fun FetchTopAppBar(
+    hasSelection: Boolean = false,
+    onBackClick: () -> Unit,
+) {
+    val backIcon: @Composable () -> Unit = {
+        IconButton(onClick = onBackClick) {
+            Icon(Icons.Default.ArrowBack, "Back")
+        }
+    }
+    TopAppBar(
+        title = { Text(text = stringResource(id = R.string.app_name)) },
+        navigationIcon = if (hasSelection) backIcon else null,
+    )
 }
 
 private val TEST_DOGGOS = DoggoRepository.generateDoggos(Random(1234))
