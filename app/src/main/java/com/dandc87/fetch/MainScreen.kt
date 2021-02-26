@@ -16,6 +16,7 @@
 package com.dandc87.fetch
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
@@ -50,11 +51,11 @@ fun FetchApp(
             SwipeableCardLayout(
                 items = doggos,
                 selectedItem = selectedDoggo,
-                modifier = Modifier,
-            ) { item, selected ->
+                modifier = Modifier.fillMaxSize(),
+            ) {
                 DoggoProfile(
-                    doggo = item,
-                    includeDetails = selected,
+                    doggo = it,
+                    includeDetails = selectedDoggo.value == it,
                 )
             }
         }
