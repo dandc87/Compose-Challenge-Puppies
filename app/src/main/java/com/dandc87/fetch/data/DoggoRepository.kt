@@ -1,9 +1,25 @@
+/*
+ * Copyright 2021 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.dandc87.fetch.data
 
+import kotlin.math.absoluteValue
 import kotlin.random.Random
 
 object DoggoRepository {
-    private const val MAX_AGE: Int = 365 * 15
+    private const val MAX_AGE: Int = 365 * 3
 
     private val names = listOf(
         "Wishbone",
@@ -29,7 +45,7 @@ object DoggoRepository {
 
     fun generateDoggos(random: Random = Random): List<Doggo> {
         return (0 until 10 + random.nextInt(100))
-            .map { generateDoggo(random.nextInt()) }
+            .map { generateDoggo(random.nextInt().absoluteValue) }
     }
 
     fun generateDoggo(seed: Int): Doggo {
@@ -43,7 +59,7 @@ object DoggoRepository {
     }
 
     private fun generateAge(seed: Int): Int {
-        return 60 + (seed % MAX_AGE)
+        return 10 + (seed % MAX_AGE)
     }
 
     private fun generateBio(seed: Int): String {
