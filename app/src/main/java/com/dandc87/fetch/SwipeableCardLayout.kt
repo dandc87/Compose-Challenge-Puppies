@@ -16,14 +16,17 @@
 package com.dandc87.fetch
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Transition
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
@@ -31,49 +34,67 @@ import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.SwipeableState
+import androidx.compose.material.rememberSwipeableState
+import androidx.compose.material.swipeable
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.google.android.material.math.MathUtils.lerp
+import kotlin.math.absoluteValue
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun <T> SwipeableCardLayout(
     items: List<T>,
     modifier: Modifier = Modifier,
+    baseElevation: Dp = 4.dp,
+    basePadding: Dp = 16.dp,
+    baseShapeCorner: Dp = 16.dp,
     selectedItem: MutableState<T?> = remember { mutableStateOf(null) },
     showingItemIndex: MutableState<Int> = remember { mutableStateOf(0) },
     onItemClick: (T) -> Unit = { selectedItem.value = it },
     content: @Composable (T) -> Unit
 ) {
-    val transition = updateTransition(selectedItem)
+    val item = items[showingItemIndex.value]
+    val nextItem = items.getOrNull(showingItemIndex.value + 1)
+
+    val transition: Transition<MutableState<T?>> = updateTransition(selectedItem)
 
     BoxWithConstraints(
         modifier = modifier,
         contentAlignment = Alignment.Center,
     ) {
-        val item = items[showingItemIndex.value]
-
-        val nextItem = items.getOrNull(showingItemIndex.value + 1)
+        val swipeState = remember(item) { SwipeableState(initialValue = CardSwipeState.NONE) }
+        DisposableEffect(swipeState.currentValue) {
+            if (swipeState.currentValue != CardSwipeState.NONE) {
+                showingItemIndex.value += 1
+            }
+            onDispose { }
+        }
 
         if (nextItem != null) {
+            val amount = (swipeState.offset.value.absoluteValue / this.constraints.maxWidth)
             SwipeableCard(
                 item = nextItem,
-                shape = CutCornerShape(size = 16.dp),
-                elevation = 1.dp,
+                shape = CutCornerShape(size = baseShapeCorner),
+                elevation = baseElevation,
+                padding = basePadding,
                 isSelectedItem = false,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .animateContentSize()
-                    .padding(all = 32.dp),
-                onItemClick = { }
+                scale = lerp(0.9f, 1f, amount),
+                onItemClick = { },
+                swipeState = rememberSwipeableState(initialValue = CardSwipeState.NONE),
             ) {
                 content(it)
             }
@@ -82,19 +103,19 @@ fun <T> SwipeableCardLayout(
         val paddingDp by transition.animateDp {
             when (it.value) {
                 item -> 0.dp
-                else -> 16.dp
+                else -> basePadding
             }
         }
         val shapeDp by transition.animateDp {
             when (it.value) {
                 item -> 0.dp
-                else -> 16.dp
+                else -> baseShapeCorner
             }
         }
         val elevationDp by transition.animateDp {
             when (it.value) {
                 item -> 0.dp
-                else -> 4.dp
+                else -> baseElevation
             }
         }
 
@@ -104,39 +125,60 @@ fun <T> SwipeableCardLayout(
             item = item,
             shape = CutCornerShape(size = shapeDp),
             elevation = elevationDp,
-            onItemClick = onItemClick,
+            padding = paddingDp,
+            swipeState = swipeState,
             isSelectedItem = isSelectedItem,
-            modifier = Modifier
-                .fillMaxWidth()
-                .let {
-                    if (isSelectedItem) {
-                        it.height(this.maxHeight)
-                    } else {
-                        it.wrapContentHeight()
-                    }
-                }
-                .animateContentSize()
-                .padding(all = paddingDp),
+            onItemClick = onItemClick,
         ) {
             content(it)
         }
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun <T> BoxWithConstraintsScope.SwipeableCard(
     item: T,
     shape: Shape,
     elevation: Dp,
+    padding: Dp,
     isSelectedItem: Boolean,
+    swipeState: SwipeableState<CardSwipeState>,
     onItemClick: (T) -> Unit,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
+    scale: Float = 1f,
     content: @Composable() (T) -> Unit,
 ) {
+    val boxMaxWidth = this.constraints.maxWidth.toFloat()
+    val swipeAnchors: Map<Float, CardSwipeState> = mapOf(
+        -boxMaxWidth to CardSwipeState.SWIPED_LEFT,
+        0f to CardSwipeState.NONE,
+        boxMaxWidth to CardSwipeState.SWIPED_RIGHT,
+    )
     Card(
         shape = shape,
         elevation = elevation,
-        modifier = modifier,
+        modifier = modifier
+            .fillMaxWidth()
+            .let {
+                if (isSelectedItem) {
+                    it.height(this.maxHeight)
+                } else {
+                    it.wrapContentHeight()
+                }
+            }
+            .animateContentSize()
+            .scale(scale = scale)
+            .swipeable(
+                enabled = !isSelectedItem,
+                state = swipeState,
+                anchors = swipeAnchors,
+                orientation = Orientation.Horizontal,
+            )
+            .offset {
+                IntOffset(swipeState.offset.value.roundToInt(), 0)
+            }
+            .padding(all = padding),
     ) {
         Box(
             modifier = Modifier
@@ -146,4 +188,10 @@ private fun <T> BoxWithConstraintsScope.SwipeableCard(
             content(item)
         }
     }
+}
+
+private enum class CardSwipeState {
+    SWIPED_LEFT,
+    NONE,
+    SWIPED_RIGHT,
 }

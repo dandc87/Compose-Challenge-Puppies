@@ -25,6 +25,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Pets
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -68,13 +69,20 @@ private fun FetchTopAppBar(
     onBackClick: () -> Unit,
 ) {
     val backIcon: @Composable () -> Unit = {
-        IconButton(onClick = onBackClick) {
-            Icon(Icons.Default.ArrowBack, "Back")
-        }
     }
     TopAppBar(
         title = { Text(text = stringResource(id = R.string.app_name)) },
-        navigationIcon = if (hasSelection) backIcon else null,
+        navigationIcon = {
+            if (hasSelection) {
+                IconButton(onClick = onBackClick) {
+                    Icon(Icons.Default.ArrowBack, "Back")
+                }
+            } else {
+                IconButton(onClick = {}) {
+                    Icon(Icons.Default.Pets, null)
+                }
+            }
+        }
     )
 }
 
