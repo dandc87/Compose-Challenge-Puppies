@@ -15,12 +15,15 @@
  */
 package com.dandc87.fetch.data
 
+import androidx.annotation.DrawableRes
+
 private const val YEAR_AS_DAYS = 365
 private const val MONTH_AS_DAYS = 30
 private const val WEEK_AS_DAYS = 7
 
 class Doggo(
     val name: String,
+    @DrawableRes val image: Int,
     val ageInDays: Int,
     val breed: String,
     val coloration: String,

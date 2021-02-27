@@ -20,13 +20,12 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import com.dandc87.fetch.data.Doggo
 import com.dandc87.fetch.data.DoggoRepository
 import com.dandc87.fetch.ui.theme.MyTheme
 
 class MainActivity : AppCompatActivity() {
 
-    private val selectedDoggo = mutableStateOf<Doggo?>(null)
+    private val expandProfile = mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,17 +34,17 @@ class MainActivity : AppCompatActivity() {
                 val doggos = remember { DoggoRepository.generateDoggos() }
                 FetchApp(
                     doggos = doggos,
-                    selectedDoggo = selectedDoggo,
+                    expandProfile = expandProfile,
                 )
             }
         }
     }
 
     override fun onBackPressed() {
-        if (selectedDoggo.value == null) {
+        if (!expandProfile.value) {
             super.onBackPressed()
         } else {
-            selectedDoggo.value = null
+            expandProfile.value = false
         }
     }
 }

@@ -41,22 +41,22 @@ import kotlin.random.Random
 @Composable
 fun FetchApp(
     doggos: List<Doggo>,
-    selectedDoggo: MutableState<Doggo?> = remember { mutableStateOf(null) }
+    expandProfile: MutableState<Boolean> = remember { mutableStateOf(false) }
 ) {
     Surface(color = MaterialTheme.colors.background) {
         Column {
             FetchTopAppBar(
-                hasSelection = selectedDoggo.value != null,
-                onBackClick = { selectedDoggo.value = null },
+                hasSelection = expandProfile.value,
+                onBackClick = { expandProfile.value = false },
             )
             SwipeableCardLayout(
                 items = doggos,
-                selectedItem = selectedDoggo,
+                expandCard = expandProfile,
                 modifier = Modifier.fillMaxSize(),
             ) {
                 DoggoProfile(
                     doggo = it,
-                    includeDetails = selectedDoggo.value == it,
+                    includeDetails = expandProfile.value,
                 )
             }
         }

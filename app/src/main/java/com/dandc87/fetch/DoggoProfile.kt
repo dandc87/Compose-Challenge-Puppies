@@ -41,7 +41,7 @@ fun DoggoProfile(
 ) {
     Column(modifier = modifier) {
         Image(
-            painter = painterResource(id = R.drawable.ic_launcher_background),
+            painter = painterResource(id = doggo.image),
             contentDescription = "Photo of ${doggo.name}",
             contentScale = ContentScale.Crop,
             modifier = Modifier
