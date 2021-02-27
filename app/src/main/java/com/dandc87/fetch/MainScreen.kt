@@ -36,7 +36,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.dandc87.fetch.data.Doggo
 import com.dandc87.fetch.data.DoggoRepository
 import com.dandc87.fetch.ui.theme.MyTheme
-import kotlin.random.Random
 
 @Composable
 fun FetchApp(
@@ -86,7 +85,7 @@ private fun FetchTopAppBar(
     )
 }
 
-private val TEST_DOGGOS = DoggoRepository.generateDoggos(Random(1234))
+private val TEST_DOGGOS = DoggoRepository.generateDoggos()
 
 @Preview("Light Theme", widthDp = 360, heightDp = 640)
 @Composable

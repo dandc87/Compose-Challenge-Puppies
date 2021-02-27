@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dandc87.fetch.data.Doggo
@@ -46,7 +47,7 @@ fun DoggoProfile(
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(ratio = 1f)
+                .aspectRatio(ratio = 0.8f)
         )
         Surface(
             color = MaterialTheme.colors.primarySurface,
@@ -59,10 +60,14 @@ fun DoggoProfile(
             ) {
                 Text(
                     text = doggo.name,
+                    maxLines = if (includeDetails) 2 else 1,
+                    overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.h5,
                 )
                 Text(
                     text = "${doggo.breed} - ${doggo.coloration} - ${doggo.ageText}",
+                    maxLines = if (includeDetails) 2 else 1,
+                    overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.subtitle1,
                 )
             }

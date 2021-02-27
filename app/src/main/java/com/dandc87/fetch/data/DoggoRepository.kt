@@ -16,7 +16,6 @@
 package com.dandc87.fetch.data
 
 import com.dandc87.fetch.R
-import kotlin.random.Random
 
 object DoggoRepository {
     private const val MAX_AGE: Int = 365 * 3
@@ -115,10 +114,7 @@ object DoggoRepository {
         LOREM_IPSUM.trim(),
     ).shuffled()
 
-    fun generateDoggos(random: Random = Random): List<Doggo> {
-        return (random.nextInt(100) until 20 + random.nextInt(100))
-            .map { generateDoggo(it) }
-    }
+    fun generateDoggos(): List<Doggo> = (0 until 200).map { generateDoggo(it) }
 
     fun generateDoggo(seed: Int): Doggo {
         return Doggo(

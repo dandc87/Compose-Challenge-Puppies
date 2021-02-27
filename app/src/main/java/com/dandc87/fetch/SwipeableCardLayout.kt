@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
@@ -48,12 +47,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.google.android.material.math.MathUtils.lerp
 import kotlin.math.absoluteValue
-import kotlin.math.roundToInt
+import kotlin.math.atan2
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -61,7 +61,7 @@ fun <T> SwipeableCardLayout(
     items: List<T>,
     modifier: Modifier = Modifier,
     baseElevation: Dp = 4.dp,
-    basePadding: Dp = 16.dp,
+    basePadding: Dp = 24.dp,
     baseShapeCorner: Dp = 16.dp,
     expandCard: MutableState<Boolean> = remember { mutableStateOf(false) },
     showingItemIndex: MutableState<Int> = remember { mutableStateOf(0) },
@@ -94,9 +94,8 @@ fun <T> SwipeableCardLayout(
                 swipeState = rememberSwipeableState(initialValue = CardSwipeState.NONE),
                 onItemClick = { },
                 scale = scale,
-            ) {
-                content(it)
-            }
+                content = content,
+            )
         } else {
             Text(
                 text = "Last doggo!",
@@ -122,9 +121,8 @@ fun <T> SwipeableCardLayout(
             swipeState = swipeState,
             onItemClick = onItemClick,
             swipeable = nextItem != null,
-        ) {
-            content(it)
-        }
+            content = content,
+        )
     }
 }
 
@@ -169,10 +167,20 @@ private fun <T> BoxWithConstraintsScope.SwipeableCard(
                 anchors = swipeAnchors,
                 orientation = Orientation.Horizontal,
             )
-            .offset {
-                IntOffset(swipeState.offset.value.roundToInt(), 0)
-            }
-            .padding(all = padding),
+            .padding(all = padding)
+            .graphicsLayer {
+                // Instead of translating with an offset,
+                // Rotate around a distant pivot point to add a rotation.
+                val pivotScale = 4.5f
+                this.transformOrigin = TransformOrigin(0.5f, 0.5f + pivotScale)
+                val theta = atan2(
+                    // opposite
+                    swipeState.offset.value,
+                    // adjacent
+                    pivotScale * boxMaxWidth,
+                )
+                this.rotationZ = theta * 180f / Math.PI.toFloat()
+            },
     ) {
         Box(
             modifier = Modifier
