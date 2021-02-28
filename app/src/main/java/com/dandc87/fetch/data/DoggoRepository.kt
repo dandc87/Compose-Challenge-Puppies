@@ -16,6 +16,7 @@
 package com.dandc87.fetch.data
 
 import com.dandc87.fetch.R
+import kotlin.math.absoluteValue
 
 object DoggoRepository {
     private const val MAX_AGE: Int = 365 * 3
@@ -31,7 +32,7 @@ object DoggoRepository {
         R.drawable.puppy_7,
         R.drawable.puppy_8,
         R.drawable.puppy_9,
-    ).shuffled()
+    )
 
     private val names = listOf(
         "Wishbone",
@@ -56,7 +57,7 @@ object DoggoRepository {
         "Abby",
         "Athena",
         "Professor Albus Percival Wulfric Brian Dumbledore",
-    ).shuffled()
+    )
 
     private val breeds = listOf(
         "Mixed",
@@ -78,7 +79,7 @@ object DoggoRepository {
         "Border Collie",
         "St. Bernard",
         "Dalmatian",
-    ).shuffled()
+    )
 
     private val colorations = listOf(
         "Brown",
@@ -96,7 +97,7 @@ object DoggoRepository {
         "Tuxedo",
         "Tricolor",
         "Saddle",
-    ).shuffled()
+    )
 
     private val bioParts = listOf(
         "Likes long walks on the beach",
@@ -112,9 +113,11 @@ object DoggoRepository {
         "\uD83D\uDC1F \uD83C\uDF63",
         "\uD83D\uDC36 \uD83D\uDC29",
         LOREM_IPSUM.trim(),
-    ).shuffled()
+    )
 
-    fun generateDoggos(): List<Doggo> = (0 until 200).map { generateDoggo(it) }
+    fun generateDoggos(seed: Int = 0): List<Doggo> = (0 until 10).map {
+        generateDoggo(it + seed.absoluteValue)
+    }
 
     fun generateDoggo(seed: Int): Doggo {
         return Doggo(

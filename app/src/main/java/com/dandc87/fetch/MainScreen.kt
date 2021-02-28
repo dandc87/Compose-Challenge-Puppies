@@ -17,24 +17,29 @@ package com.dandc87.fetch
 
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.updateTransition
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.AppBarDefaults
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.LocalContentColor
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
+import androidx.compose.material.Scaffold
+import androidx.compose.material.ScaffoldState
+import androidx.compose.material.SnackbarDuration
+import androidx.compose.material.SnackbarResult
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Pets
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,37 +49,67 @@ import androidx.compose.ui.zIndex
 import com.dandc87.fetch.data.Doggo
 import com.dandc87.fetch.data.DoggoRepository
 import com.dandc87.fetch.ui.theme.MyTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun FetchApp(
     doggos: List<Doggo>,
-    expandProfile: MutableState<Boolean> = remember { mutableStateOf(false) }
+    expandProfile: MutableState<Boolean> = remember { mutableStateOf(false) },
+    showingDoggoIndex: MutableState<Int> = remember { mutableStateOf(0) },
+    scaffoldState: ScaffoldState = rememberScaffoldState(),
+    onLoadMoreClick: () -> Unit = {},
 ) {
     val transition = updateTransition(expandProfile)
     val topBarElevation = transition.animateDp {
         if (expandProfile.value) AppBarDefaults.TopAppBarElevation else 0.dp
     }
 
-    Surface(color = MaterialTheme.colors.background) {
-        Column {
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(showingDoggoIndex.value, expandProfile.value) {
+        if (!expandProfile.value && showingDoggoIndex.value == doggos.lastIndex) {
+            val result = scaffoldState.snackbarHostState.showSnackbar(
+                message = "Last Doggo!",
+                actionLabel = "Load More",
+                duration = SnackbarDuration.Indefinite,
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                onLoadMoreClick()
+            }
+        }
+    }
+
+    Scaffold(
+        scaffoldState = scaffoldState,
+        topBar = {
             FetchTopAppBar(
                 elevation = topBarElevation.value,
                 hasSelection = expandProfile.value,
                 onBackClick = { expandProfile.value = false },
             )
+        },
+        content = {
             SwipeableCardLayout(
                 items = doggos,
                 expandCard = expandProfile,
+                showingItemIndex = showingDoggoIndex,
                 transition = transition,
                 modifier = Modifier.fillMaxSize(),
-            ) {
+                onSwipeRight = { doggo ->
+                    scope.launch {
+                        scaffoldState.snackbarHostState.showSnackbar(
+                            message = "Application sent. It's up to ${doggo.name} now!",
+                        )
+                    }
+                },
+            ) { doggo ->
                 DoggoProfile(
-                    doggo = it,
+                    doggo = doggo,
                     includeDetails = expandProfile.value,
                 )
             }
         }
-    }
+    )
 }
 
 @Composable

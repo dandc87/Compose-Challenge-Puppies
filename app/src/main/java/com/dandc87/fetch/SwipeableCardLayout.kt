@@ -33,19 +33,18 @@ import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.SwipeableState
-import androidx.compose.material.Text
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.swipeable
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TransformOrigin
@@ -68,6 +67,8 @@ fun <T> SwipeableCardLayout(
     showingItemIndex: MutableState<Int> = remember { mutableStateOf(0) },
     transition: Transition<MutableState<Boolean>> = updateTransition(expandCard),
     onItemClick: (T) -> Unit = { expandCard.value = true },
+    onSwipeLeft: (T) -> Unit = {},
+    onSwipeRight: (T) -> Unit = {},
     content: @Composable (T) -> Unit
 ) {
     val item = items[showingItemIndex.value]
@@ -78,14 +79,18 @@ fun <T> SwipeableCardLayout(
         contentAlignment = Alignment.Center,
     ) {
         val swipeState = remember(item) { SwipeableState(initialValue = CardSwipeState.NONE) }
-        DisposableEffect(swipeState.currentValue) {
-            if (swipeState.currentValue != CardSwipeState.NONE) {
-                showingItemIndex.value += 1
+
+        LaunchedEffect(swipeState.currentValue) {
+            when (swipeState.currentValue) {
+                CardSwipeState.NONE -> return@LaunchedEffect
+                CardSwipeState.SWIPED_RIGHT -> onSwipeRight(item)
+                CardSwipeState.SWIPED_LEFT -> onSwipeLeft(item)
             }
-            onDispose { }
+            // We return early when NONE, so we've swiped by now
+            showingItemIndex.value += 1
         }
 
-        if (nextItem != null) {
+        if (nextItem != null && swipeState.targetValue != CardSwipeState.NONE) {
             val scale = lerp(0.9f, 1f, (swipeState.offset.value.absoluteValue / constraints.maxWidth))
             SwipeableCard(
                 item = nextItem,
@@ -97,15 +102,6 @@ fun <T> SwipeableCardLayout(
                 onItemClick = { },
                 scale = scale,
                 content = content,
-            )
-        } else {
-            Text(
-                text = "Last doggo!",
-                color = MaterialTheme.colors.error,
-                style = MaterialTheme.typography.subtitle2,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(16.dp),
             )
         }
 
@@ -181,6 +177,7 @@ private fun <T> BoxWithConstraintsScope.SwipeableCard(
                     pivotScale * boxMaxWidth,
                 )
                 this.rotationZ = theta * 180f / Math.PI.toFloat()
+                this.alpha = 1.2f - (swipeState.offset.value.absoluteValue / boxMaxWidth)
             },
     ) {
         Box(

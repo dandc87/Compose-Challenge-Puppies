@@ -19,25 +19,35 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import com.dandc87.fetch.data.DoggoRepository
 import com.dandc87.fetch.ui.theme.MyTheme
+import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
 
     private val expandProfile = mutableStateOf(false)
+    private val showingDoggoIndex = mutableStateOf(0)
+    private val doggos = mutableStateOf(DoggoRepository.generateDoggos(Random.nextInt()))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MyTheme {
-                val doggos = remember { DoggoRepository.generateDoggos() }
                 FetchApp(
-                    doggos = doggos,
+                    doggos = doggos.value,
                     expandProfile = expandProfile,
+                    showingDoggoIndex = showingDoggoIndex,
+                    onLoadMoreClick = { loadMoreDoggos() },
                 )
             }
         }
+    }
+
+    private fun loadMoreDoggos() {
+        val doggosToKeep = doggos.value.subList(showingDoggoIndex.value, doggos.value.size)
+        val newDoggos = DoggoRepository.generateDoggos(Random.nextInt())
+        doggos.value = doggosToKeep + newDoggos
+        showingDoggoIndex.value = 0
     }
 
     override fun onBackPressed() {
