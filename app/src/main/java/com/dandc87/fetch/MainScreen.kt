@@ -15,10 +15,14 @@
  */
 package com.dandc87.fetch
 
+import androidx.compose.animation.core.animateDp
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.AppBarDefaults
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.LocalContentColor
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -27,12 +31,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.dandc87.fetch.data.Doggo
 import com.dandc87.fetch.data.DoggoRepository
 import com.dandc87.fetch.ui.theme.MyTheme
@@ -42,15 +50,22 @@ fun FetchApp(
     doggos: List<Doggo>,
     expandProfile: MutableState<Boolean> = remember { mutableStateOf(false) }
 ) {
+    val transition = updateTransition(expandProfile)
+    val topBarElevation = transition.animateDp {
+        if (expandProfile.value) AppBarDefaults.TopAppBarElevation else 0.dp
+    }
+
     Surface(color = MaterialTheme.colors.background) {
         Column {
             FetchTopAppBar(
+                elevation = topBarElevation.value,
                 hasSelection = expandProfile.value,
                 onBackClick = { expandProfile.value = false },
             )
             SwipeableCardLayout(
                 items = doggos,
                 expandCard = expandProfile,
+                transition = transition,
                 modifier = Modifier.fillMaxSize(),
             ) {
                 DoggoProfile(
@@ -64,12 +79,14 @@ fun FetchApp(
 
 @Composable
 private fun FetchTopAppBar(
+    elevation: Dp = 0.dp,
     hasSelection: Boolean = false,
     onBackClick: () -> Unit,
 ) {
-    val backIcon: @Composable () -> Unit = {
-    }
     TopAppBar(
+        modifier = Modifier.zIndex(1f),
+        elevation = elevation,
+        backgroundColor = MaterialTheme.colors.background,
         title = { Text(text = stringResource(id = R.string.app_name)) },
         navigationIcon = {
             if (hasSelection) {
@@ -78,7 +95,11 @@ private fun FetchTopAppBar(
                 }
             } else {
                 IconButton(onClick = {}) {
-                    Icon(Icons.Default.Pets, null)
+                    CompositionLocalProvider(
+                        LocalContentColor provides MaterialTheme.colors.primary,
+                    ) {
+                        Icon(Icons.Default.Pets, null)
+                    }
                 }
             }
         }
@@ -100,5 +121,27 @@ fun LightPreview() {
 fun DarkPreview() {
     MyTheme(darkTheme = true) {
         FetchApp(doggos = TEST_DOGGOS)
+    }
+}
+
+@Preview("Light Theme", widthDp = 360, heightDp = 640)
+@Composable
+fun LightPreview_Expanded() {
+    MyTheme {
+        FetchApp(
+            doggos = TEST_DOGGOS,
+            expandProfile = remember { mutableStateOf(true) },
+        )
+    }
+}
+
+@Preview("Dark Theme", widthDp = 360, heightDp = 640)
+@Composable
+fun DarkPreview_Expanded() {
+    MyTheme(darkTheme = true) {
+        FetchApp(
+            doggos = TEST_DOGGOS,
+            expandProfile = remember { mutableStateOf(true) },
+        )
     }
 }

@@ -16,6 +16,7 @@
 package com.dandc87.fetch
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,7 +24,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
-import androidx.compose.material.primarySurface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -50,7 +50,7 @@ fun DoggoProfile(
                 .aspectRatio(ratio = 0.8f)
         )
         Surface(
-            color = MaterialTheme.colors.primarySurface,
+            color = MaterialTheme.colors.primary,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Column(
@@ -76,7 +76,9 @@ fun DoggoProfile(
             Text(
                 text = doggo.bio,
                 style = MaterialTheme.typography.body1,
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier
+                    .background(MaterialTheme.colors.surface)
+                    .padding(16.dp),
             )
         }
     }

@@ -16,6 +16,7 @@
 package com.dandc87.fetch
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Transition
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.clickable
@@ -65,6 +66,7 @@ fun <T> SwipeableCardLayout(
     baseShapeCorner: Dp = 16.dp,
     expandCard: MutableState<Boolean> = remember { mutableStateOf(false) },
     showingItemIndex: MutableState<Int> = remember { mutableStateOf(0) },
+    transition: Transition<MutableState<Boolean>> = updateTransition(expandCard),
     onItemClick: (T) -> Unit = { expandCard.value = true },
     content: @Composable (T) -> Unit
 ) {
@@ -107,7 +109,6 @@ fun <T> SwipeableCardLayout(
             )
         }
 
-        val transition = updateTransition(expandCard)
         val paddingDp by transition.animateDp { if (it.value) 0.dp else basePadding }
         val shapeDp by transition.animateDp { if (it.value) 0.dp else baseShapeCorner }
         val elevationDp by transition.animateDp { if (it.value) 0.dp else baseElevation }
