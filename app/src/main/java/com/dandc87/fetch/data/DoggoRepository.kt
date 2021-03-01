@@ -115,7 +115,7 @@ object DoggoRepository {
         LOREM_IPSUM.trim(),
     )
 
-    fun generateDoggos(seed: Int = 0): List<Doggo> = (0 until 10).map {
+    fun generateDoggos(seed: Int = 0): List<Doggo> = (0 until 100).map {
         generateDoggo(it + seed.absoluteValue)
     }
 
